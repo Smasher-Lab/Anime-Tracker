@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const { Pool } = require('pg'); // fine if you're using it elsewhere
+const { Pool } = require('pg');
 const bcrypt = require('bcrypt');
 const OpenAI = require('openai');
 require('dotenv').config();
@@ -9,7 +9,7 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY, // ✅ fixed here
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
 // Middleware
@@ -18,7 +18,7 @@ app.use(express.json());
 
 // Chat route
 app.post("/api/chat", async (req, res) => {
-  console.log("Incoming body:", req.body); // 👈 debug log
+  console.log("Incoming body:", req.body);
 
   const { message } = req.body;
 
@@ -48,8 +48,8 @@ app.post("/api/chat", async (req, res) => {
 const pool = new Pool({
   user: 'postgres',
   host: 'localhost',
-  database: 'anime_tracker_db',
-  password: '123456',
+  database: process.env.PG_DATABASE,
+  password: process.env.PG_PASSWORD,
   port: 5432,
 });
 

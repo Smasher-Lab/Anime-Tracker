@@ -92,7 +92,7 @@ function AnimeTracker() {
       }, 1000);
       return () => clearTimeout(saveTimer);
     }
-  }, [animeData, userId]);
+  }, [animeData, userId, isLoading]);
 
   const addAnimeToList = (animeToAdd) => {
     const isAlreadyAdded = animeData.some(anime => anime.id === animeToAdd.mal_id);

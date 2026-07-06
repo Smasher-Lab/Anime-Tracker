@@ -4,7 +4,7 @@ import React from 'react';
 function ThemeToggle({ theme, toggleTheme }) {
   return (
     <button onClick={toggleTheme} className="theme-toggle-button">
-      {theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode'}
+      {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
     </button>
   );
 }

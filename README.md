@@ -1,12 +1,123 @@
-# React + Vite
+# 🤖 Anime Tracker
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A full-stack Anime Tracking web application that helps users discover, organize, and manage their favorite anime. The application provides authentication, personalized watchlists, ratings, comments, polls, and an admin dashboard for content management.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🚀 Features
 
-## Expanding the ESLint configuration
+- 🔐 User Authentication & Authorization
+- 👤 User Profiles
+- ❤️ Personal Anime Watchlist
+- ⭐ Ratings & Reviews
+- 💬 Comments
+- 📊 Polls
+- 🔍 Search Anime
+- 🎯 Advanced Filtering
+- 👑 Admin Dashboard
+- 🌙 Dark / Light Theme
+- 📱 Responsive Design
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+---
+
+## 🛠 Tech Stack
+
+### Frontend
+- React.js
+- Vite
+- CSS
+
+### Backend
+- Node.js
+- Express.js
+
+### Database
+- PostgreSQL
+
+### Tools
+- Git
+- GitHub
+- Postman
+
+---
+
+## 📂 Project Structure
+
+```text
+anime-tracker/
+│
+├── src/
+├── server/
+├── public/
+├── README.md
+└── package.json
+```
+
+---
+
+## ⚙️ Installation
+
+### Clone Repository
+
+```bash
+git clone https://github.com/Smasher-Lab/anime-tracker.git
+```
+
+### Install Frontend
+
+```bash
+npm install
+```
+
+### Install Backend
+
+```bash
+cd server
+npm install
+```
+
+### Run Frontend
+
+```bash
+npm run dev
+```
+
+### Run Backend
+
+```bash
+cd server
+npm start
+```
+
+---
+
+## 📸 Screenshots
+
+> Screenshots will be added soon.
+
+---
+
+## 🌐 Live Demo
+
+Coming Soon
+
+---
+
+## 🔮 Future Improvements
+
+- Anime Recommendation System
+- Email Verification
+- Notifications
+- Docker Deployment
+- CI/CD Pipeline
+- AI Recommendations
+- Watch History
+- Mobile Optimization
+
+---
+
+## 👨‍💻 Author
+
+**Mukku Lalith**
+
+GitHub: https://github.com/Smasher-Lab

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom"; // you need this for navigate
+import { useNavigate } from "react-router-dom";
 
 function Sidebar({ userId, username, isAdmin, setShowShareModal }) {
     const [isOpen, setIsOpen] = useState(false);
@@ -7,16 +7,14 @@ function Sidebar({ userId, username, isAdmin, setShowShareModal }) {
 
     return (
         <div className="sidebar-container">
-            {/* Toggle button */}
             <button
                 className={`sidebar-btn ${isOpen ? "open" : ""}`}
                 onClick={() => setIsOpen(!isOpen)}
+                aria-label={isOpen ? "Close sidebar" : "Open sidebar"}
             >
-                {isOpen ? "×" : "➡️"}
+                {isOpen ? "x" : ">"}
             </button>
 
-
-            {/* Sidebar */}
             <div className={`sidebar ${isOpen ? "open" : ""}`}>
                 <div className="sidebar-links">
                     <p

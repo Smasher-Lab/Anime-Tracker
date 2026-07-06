@@ -4,8 +4,7 @@ import { useParams, useLocation } from 'react-router-dom';
 function AnimeDetail() {
   const { animeId } = useParams();
   const location = useLocation();
-  const { userId, username } = location.state || {};
-  
+  const { userId } = location.state || {};
   const [anime, setAnime] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [streamingLinks, setStreamingLinks] = useState([]);
@@ -93,6 +92,11 @@ function AnimeDetail() {
   };
 
   const handleSubscribe = async () => {
+    if (!userId) {
+        setReminderMessage('You must be logged in to subscribe to reminders.');
+        return;
+    }
+
     try {
         const response = await fetch('http://localhost:3001/api/reminders', {
             method: 'POST',
@@ -110,7 +114,7 @@ function AnimeDetail() {
         } else {
             setReminderMessage(data.message || 'Failed to subscribe to reminders.');
         }
-    } catch (err) {
+    } catch {
         setReminderMessage('Could not connect to the server.');
     }
   };
@@ -168,7 +172,7 @@ function AnimeDetail() {
 
           <div className="reminder-section">
             {isSubscribed ? (
-              <p className="subscribed-message">You are subscribed to reminders for this anime. ✅</p>
+              <p className="subscribed-message">You are subscribed to reminders for this anime.</p>
             ) : (
               <button onClick={handleSubscribe} className="subscribe-button">
                 Subscribe to Episode Reminders

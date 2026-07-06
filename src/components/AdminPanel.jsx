@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 function AdminPanel() {
@@ -12,7 +12,7 @@ function AdminPanel() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const fetchAdminData = async () => {
+  const fetchAdminData = useCallback(async () => {
     if (!isAdmin) {
       navigate('/tracker');
       return;
@@ -40,11 +40,11 @@ function AdminPanel() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [isAdmin, navigate]);
 
   useEffect(() => {
     fetchAdminData();
-  }, []);
+  }, [fetchAdminData]);
 
   const handleDelete = async (type, id) => {
     const confirmDelete = window.confirm(`Are you sure you want to delete this ${type}?`);

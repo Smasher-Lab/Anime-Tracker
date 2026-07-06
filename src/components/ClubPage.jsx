@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 
 function ClubPage() {
@@ -17,7 +17,7 @@ function ClubPage() {
   const [pollFormMessage, setPollFormMessage] = useState('');
   const [userVotes, setUserVotes] = useState({});
 
-  const fetchClubData = async () => {
+  const fetchClubData = useCallback(async () => {
     try {
       const clubResponse = await fetch(`http://localhost:3001/api/clubs/${clubId}`);
       const clubData = await clubResponse.json();
@@ -57,13 +57,16 @@ function ClubPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [clubId, userId]);
 
   useEffect(() => {
-    if (userId) {
-        fetchClubData();
+    if (!userId) {
+        setError('You must be logged in to view clubs.');
+        setIsLoading(false);
+        return;
     }
-  }, [clubId, userId]);
+    fetchClubData();
+  }, [fetchClubData, userId]);
 
   const handlePostMessage = async (event) => {
     event.preventDefault();
