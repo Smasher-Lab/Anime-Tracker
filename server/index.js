@@ -45,18 +45,16 @@ app.post("/api/chat", async (req, res) => {
 
 
 // PostgreSQL Connection Pool
-const pool = new Pool({
-  user: 'postgres',
-  host: 'localhost',
-  database: process.env.PG_DATABASE,
-  password: process.env.PG_PASSWORD,
-  port: 5432,
-});
 
-pool.on('error', (err) => {
-  console.error('Unexpected error on idle client', err);
-  process.exit(-1);
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false,
+  },
 });
+pool.query("SELECT NOW()")
+  .then(() => console.log("✅ Connected to Neon PostgreSQL"))
+  .catch(err => console.error("❌ Database Connection Error:", err.message));
 
 async function checkNewEpisodes() {
   console.log('Running background job: Checking for new episodes...');
