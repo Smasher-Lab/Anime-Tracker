@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
+import API_URL from '../config';
 
 function AnimeDetail() {
   const { animeId } = useParams();
@@ -27,14 +28,14 @@ function AnimeDetail() {
           throw new Error('Failed to fetch anime details.');
         }
 
-        const reviewsResponse = await fetch(`http://localhost:3001/api/reviews/${animeId}`);
+        const reviewsResponse = await fetch(`${API_URL}/api/reviews/${animeId}`);
         const reviewsData = await reviewsResponse.json();
         if (!reviewsResponse.ok) {
           throw new Error('Failed to fetch reviews.');
         }
         
         if (userId) {
-          const remindersResponse = await fetch(`http://localhost:3001/api/reminders/${userId}`);
+          const remindersResponse = await fetch(`${API_URL}/api/reminders/${userId}`);
           const remindersData = await remindersResponse.json();
           if (remindersResponse.ok && remindersData.subscribedAnimeIds.includes(parseInt(animeId))) {
             setIsSubscribed(true);
@@ -63,7 +64,7 @@ function AnimeDetail() {
     }
     
     try {
-      const response = await fetch('http://localhost:3001/api/reviews', {
+      const response = await fetch('${API_URL}/api/reviews', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -77,7 +78,7 @@ function AnimeDetail() {
       const data = await response.json();
       if (response.ok) {
         setReviewMessage('Review submitted successfully!');
-        const reviewsResponse = await fetch(`http://localhost:3001/api/reviews/${animeId}`);
+        const reviewsResponse = await fetch(`${API_URL}/api/reviews/${animeId}`);
         const reviewsData = await reviewsResponse.json();
         setReviews(reviewsData.reviews);
         setNewRating(1);
@@ -98,7 +99,7 @@ function AnimeDetail() {
     }
 
     try {
-        const response = await fetch('http://localhost:3001/api/reminders', {
+        const response = await fetch('${API_URL}/api/reminders', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 

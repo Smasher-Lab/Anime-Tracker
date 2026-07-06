@@ -19,25 +19,25 @@ function ClubPage() {
 
   const fetchClubData = useCallback(async () => {
     try {
-      const clubResponse = await fetch(`http://localhost:3001/api/clubs/${clubId}`);
+      const clubResponse = await fetch(`${API_URL}/api/clubs/${clubId}`);
       const clubData = await clubResponse.json();
       if (!clubResponse.ok) {
         throw new Error(clubData.message || 'Failed to fetch club.');
       }
 
-      const discussionsResponse = await fetch(`http://localhost:3001/api/discussions/${clubId}`);
+      const discussionsResponse = await fetch(`${API_URL}/api/discussions/${clubId}`);
       const discussionsData = await discussionsResponse.json();
       if (!discussionsResponse.ok) {
         throw new Error(discussionsData.message || 'Failed to fetch discussions.');
       }
 
-      const pollsResponse = await fetch(`http://localhost:3001/api/polls/${clubId}`);
+      const pollsResponse = await fetch(`${API_URL}/api/polls/${clubId}`);
       const pollsData = await pollsResponse.json();
       if (!pollsResponse.ok) {
         throw new Error(pollsData.message || 'Failed to fetch polls.');
       }
       
-      const votesResponse = await fetch(`http://localhost:3001/api/votes/${userId}`);
+      const votesResponse = await fetch(`${API_URL}/api/votes/${userId}`);
       const votesData = await votesResponse.json();
       if (votesResponse.ok) {
           const votesObject = votesData.votes.reduce((acc, vote) => {
@@ -75,7 +75,7 @@ function ClubPage() {
     }
 
     try {
-      const response = await fetch('http://localhost:3001/api/discussions', {
+      const response = await fetch('${API_URL}/api/discussions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -128,7 +128,7 @@ function ClubPage() {
     }
 
     try {
-      const response = await fetch('http://localhost:3001/api/polls', {
+      const response = await fetch('${API_URL}/api/polls', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -161,7 +161,7 @@ function ClubPage() {
     }
     
     try {
-      const response = await fetch('http://localhost:3001/api/votes', {
+      const response = await fetch('${API_URL}/api/votes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

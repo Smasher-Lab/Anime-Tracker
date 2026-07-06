@@ -18,7 +18,7 @@ function AnalyticsDashboard() {
         return;
       }
       try {
-        const response = await fetch(`http://localhost:3001/api/analytics/${userId}`);
+        const response = await fetch(`${API_URL}/api/analytics/${userId}`);
         const data = await response.json();
         if (!response.ok) {
           throw new Error(data.message || 'Failed to fetch analytics data.');

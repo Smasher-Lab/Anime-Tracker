@@ -15,7 +15,7 @@ function Clubs() {
 
   const fetchClubs = async () => {
     try {
-      const response = await fetch('http://localhost:3001/api/clubs');
+      const response = await fetch('${API_URL}/api/clubs');
       const data = await response.json();
 
       if (!response.ok) {
@@ -51,7 +51,7 @@ function Clubs() {
     }
 
     try {
-      const response = await fetch('http://localhost:3001/api/clubs', {
+      const response = await fetch('${API_URL}1/api/clubs', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

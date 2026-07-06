@@ -8,7 +8,7 @@ function FilterBar({ onFilterChange }) {
   useEffect(() => {
     const fetchGenres = async () => {
       try {
-        const response = await fetch('http://localhost:3001/api/genres');
+        const response = await fetch('${API_URL}/api/genres');
         const data = await response.json();
         if (!response.ok) {
           throw new Error(data.message || 'Failed to fetch genres.');

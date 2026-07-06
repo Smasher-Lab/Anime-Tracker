@@ -21,7 +21,7 @@
 ## Conventions
 - Auth state via router navigation (loses on refresh)
 - Admin access via `is_admin=true` query param (not secure)
-- Hardcoded backend URL `http://localhost:3001`
+- Hardcoded backend URL `${API_URL}`
 - Watch time assumes 24-min episodes
 
 See [PROJECT_SNAPSHOT.md](PROJECT_SNAPSHOT.md) for detailed feature overview and known limitations.</content>

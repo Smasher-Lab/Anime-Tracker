@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import API_URL from '../config';
 
 function AdminPanel() {
   const location = useLocation();
@@ -19,17 +20,17 @@ function AdminPanel() {
     }
     
     try {
-      const usersResponse = await fetch(`http://localhost:3001/api/admin/users?is_admin=true`);
+      const usersResponse = await fetch(`${API_URL}/api/admin/users?is_admin=true`);
       const usersData = await usersResponse.json();
       if (!usersResponse.ok) throw new Error(usersData.message);
       setUsers(usersData.users);
 
-      const clubsResponse = await fetch(`http://localhost:3001/api/admin/clubs?is_admin=true`);
+      const clubsResponse = await fetch(`${API_URL}/api/admin/clubs?is_admin=true`);
       const clubsData = await clubsResponse.json();
       if (!clubsResponse.ok) throw new Error(clubsData.message);
       setClubs(clubsData.clubs);
       
-      const reviewsResponse = await fetch(`http://localhost:3001/api/admin/reviews?is_admin=true`);
+      const reviewsResponse = await fetch(`${API_URL}/api/admin/reviews?is_admin=true`);
       const reviewsData = await reviewsResponse.json();
       if (!reviewsResponse.ok) throw new Error(reviewsData.message);
       setReviews(reviewsData.reviews);
@@ -51,7 +52,7 @@ function AdminPanel() {
     if (!confirmDelete) return;
 
     try {
-      const response = await fetch(`http://localhost:3001/api/admin/${type}s/${id}?is_admin=true`, {
+      const response = await fetch(`${API_URL}/api/admin/${type}s/${id}?is_admin=true`, {
         method: 'DELETE',
       });
 

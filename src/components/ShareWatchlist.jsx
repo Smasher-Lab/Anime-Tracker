@@ -18,7 +18,7 @@ function ShareWatchlist({ userId }) {
       setSharedListError('');
 
       try {
-        const response = await fetch(`http://localhost:3001/api/anime/${sharedUserId}`);
+        const response = await fetch(`${API_URL}/api/anime/${sharedUserId}`);
         const data = await response.json();
 
         if (!response.ok) {

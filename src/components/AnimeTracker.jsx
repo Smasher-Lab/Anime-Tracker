@@ -41,7 +41,7 @@ function AnimeTracker() {
   useEffect(() => {
     const fetchSavedAnime = async () => {
       try {
-        const response = await fetch(`http://localhost:3001/api/anime/${userId}`);
+        const response = await fetch(`${API_URL}/api/anime/${userId}`);
         const data = await response.json();
         if (!response.ok) {
           throw new Error(data.message || 'Failed to fetch saved list.');
@@ -76,7 +76,7 @@ function AnimeTracker() {
     const saveAnimeList = async () => {
       if (animeData.length === 0 && isLoading) return;
       try {
-        await fetch(`http://localhost:3001/api/anime`, {
+        await fetch(`${API_URL}/api/anime`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
