@@ -3,6 +3,7 @@ import { useLocation, useNavigate, Link } from 'react-router-dom';
 import FilterBar from './FilterBar';
 import ShareWatchlist from './ShareWatchlist';
 import Sidebar from './Sidebar';
+import API_URL from '../config';
 
 
 
