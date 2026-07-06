@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API_URL from '../config';
+console.log("API_URL:", API_URL);
 
 function Login() {
   const [username, setUsername] = useState('');
