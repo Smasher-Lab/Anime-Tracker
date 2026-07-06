@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
+import API_URL from '../config';
 
 function Clubs() {
   const location = useLocation();

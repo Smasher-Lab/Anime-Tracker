@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import API_URL from '../config';
 
 function ShareWatchlist({ userId }) {
   const { userId: sharedUserId } = useParams();

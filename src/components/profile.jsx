@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Chatbot from './Chatbot';
-
+import API_URL from '../config';
 function Profile() {
   const navigate = useNavigate();
   const location = useLocation();
