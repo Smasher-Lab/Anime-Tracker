@@ -76,7 +76,7 @@ function ClubPage() {
     }
 
     try {
-      const response = await fetch('${API_URL}/api/discussions', {
+      const response = await fetch(`${API_URL}/api/discussions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -129,7 +129,7 @@ function ClubPage() {
     }
 
     try {
-      const response = await fetch('${API_URL}/api/polls', {
+      const response = await fetch(`${API_URL}/api/polls`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -162,7 +162,7 @@ function ClubPage() {
     }
     
     try {
-      const response = await fetch('${API_URL}/api/votes', {
+      const response = await fetch(`${API_URL}/api/votes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -287,5 +287,4 @@ function ClubPage() {
     </div>
   );
 }
-
 export default ClubPage;

@@ -3,6 +3,9 @@ const cors = require('cors');
 const { Pool } = require('pg');
 const bcrypt = require('bcrypt');
 const OpenAI = require('openai');
+const jwt = require('jsonwebtoken');   
+const cookie = require('cookie-parser');
+const cookieParser = require('cookie-parser');
 require('dotenv').config();
 
 const app = express();
@@ -13,9 +16,13 @@ const openai = new OpenAI({
 });
 
 // Middleware
-app.use(cors());
-app.use(express.json());
 
+app.use(cors({
+    origin: "http://localhost:5173", // React/Vite frontend
+    credentials: true
+}));
+app.use(express.json());
+app.use(cookieParser())
 // Chat route
 app.post("/api/chat", async (req, res) => {
   console.log("Incoming body:", req.body);
@@ -136,10 +143,25 @@ app.post('/api/login', async (req, res) => {
     if (!isPasswordValid) {
       return res.status(401).json({ message: 'Invalid username or password.' });
     }
+    const token = jwt.sign({
+      email: user.email,
+      userid: user.id,
+      admin:user.is_admin
+    },
+    "tracker_09",{
+      expiresIn: "0.5h"
+    })
+    res.cookie("token", token, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: false, // localhost
+    path: "/"
+});
     res.status(200).json({
       message: 'Login successful!',
       user_id: user.id,
       is_admin: user.is_admin
+      
     });
   } catch (error) {
     console.error('Login error:', error);
@@ -147,6 +169,20 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
+const verifytoken = (req,res,next) => {
+  const token = req.cookies.token;
+  if (!token){
+    return res.json({message: "cannot find token or invalid session"})
+  } 
+  try {
+    const decode = jwt.verify(token,"travker_09");
+    req.user = decode;
+    next();
+  }
+  catch(error){
+    console.log(err)
+  }
+}
 app.post('/api/anime', async (req, res) => {
   const { userId, animeList } = req.body;
   try {
@@ -462,8 +498,63 @@ app.post('/api/polls', async (req, res) => {
     client.release();
   }
 });
+app.get('/api/votes/:userId', async (req, res) => {
+  const { userId } = req.params;
 
-app.get('/api/admin/users', async (req, res) => {
+  try {
+    const client = await pool.connect();
+
+    const result = await client.query(
+      `SELECT poll_id, option_id
+       FROM votes
+       WHERE user_id = $1`,
+      [userId]
+    );
+
+    client.release();
+
+    res.json({
+      votes: result.rows
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      message: "Failed to fetch votes."
+    });
+  }
+});
+app.get('/api/clubs', async (req, res) => {
+  try {
+    const client = await pool.connect();
+
+    const query = `
+      SELECT
+        c.*,
+        u.username
+      FROM clubs c
+      JOIN users u
+        ON c.created_by = u.id
+      ORDER BY c.created_at DESC
+    `;
+
+    const result = await client.query(query);
+
+    client.release();
+
+    res.status(200).json({
+      clubs: result.rows
+    });
+
+  } catch (error) {
+    console.error('Fetch clubs error:', error);
+
+    res.status(500).json({
+      message: 'Server error. Could not fetch clubs.'
+    });
+  }
+});
+app.get('/api/admin/users',verifytoken, async (req, res) => {
   const { is_admin } = req.query;
   if (is_admin !== 'true') {
     return res.status(403).json({ message: 'Access denied.' });
