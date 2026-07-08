@@ -6,7 +6,7 @@ const OpenAI = require('openai');
 const jwt = require('jsonwebtoken');
 const cookie = require('cookie-parser');
 const cookieParser = require('cookie-parser');
-require('dotenv').config();
+require("dotenv").config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -18,7 +18,7 @@ const openai = new OpenAI({
 // Middleware
 
 app.use(cors({
-  origin: "process.env.FRONTEND_URL",
+  origin: process.env.FRONTEND_URL,
   credentials: true
 }));
 app.use(express.json());
@@ -148,7 +148,7 @@ app.post('/api/login', async (req, res) => {
       userid: user.id,
       admin: user.is_admin
     },
-      "tracker_09", {
+      "process.env.JWT_SECRET", {
       expiresIn: "0.5h"
     })
     res.cookie("token", token, {
@@ -158,7 +158,7 @@ app.post('/api/login', async (req, res) => {
         process.env.NODE_ENV === "production"
           ? "none"
           : "lax",
-      maxAge: 30 * 60 * 1000,
+      maxAge: 30 * 60 * 1000
     });
     res.status(200).json({
       message: 'Login successful!',
