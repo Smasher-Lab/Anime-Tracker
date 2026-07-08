@@ -3,7 +3,7 @@ const cors = require('cors');
 const { Pool } = require('pg');
 const bcrypt = require('bcrypt');
 const OpenAI = require('openai');
-const jwt = require('jsonwebtoken');   
+const jwt = require('jsonwebtoken');
 const cookie = require('cookie-parser');
 const cookieParser = require('cookie-parser');
 require('dotenv').config();
@@ -18,8 +18,8 @@ const openai = new OpenAI({
 // Middleware
 
 app.use(cors({
-    origin: "http://localhost:5173", // React/Vite frontend
-    credentials: true
+  origin: "process.env.FRONTEND_URL",
+  credentials: true
 }));
 app.use(express.json());
 app.use(cookieParser())
@@ -146,22 +146,25 @@ app.post('/api/login', async (req, res) => {
     const token = jwt.sign({
       email: user.email,
       userid: user.id,
-      admin:user.is_admin
+      admin: user.is_admin
     },
-    "tracker_09",{
+      "tracker_09", {
       expiresIn: "0.5h"
     })
     res.cookie("token", token, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: false, // localhost
-    path: "/"
-});
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite:
+        process.env.NODE_ENV === "production"
+          ? "none"
+          : "lax",
+      maxAge: 30 * 60 * 1000,
+    });
     res.status(200).json({
       message: 'Login successful!',
       user_id: user.id,
       is_admin: user.is_admin
-      
+
     });
   } catch (error) {
     console.error('Login error:', error);
@@ -169,17 +172,17 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-const verifytoken = (req,res,next) => {
+const verifytoken = (req, res, next) => {
   const token = req.cookies.token;
-  if (!token){
-    return res.json({message: "cannot find token or invalid session"})
-  } 
+  if (!token) {
+    return res.json({ message: "cannot find token or invalid session" })
+  }
   try {
-    const decode = jwt.verify(token,"travker_09");
+    const decode = jwt.verify(token, "travker_09");
     req.user = decode;
     next();
   }
-  catch(error){
+  catch (error) {
     console.log(err)
   }
 }
@@ -554,7 +557,7 @@ app.get('/api/clubs', async (req, res) => {
     });
   }
 });
-app.get('/api/admin/users',verifytoken, async (req, res) => {
+app.get('/api/admin/users', verifytoken, async (req, res) => {
   const { is_admin } = req.query;
   if (is_admin !== 'true') {
     return res.status(403).json({ message: 'Access denied.' });
