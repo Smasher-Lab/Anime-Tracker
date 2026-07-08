@@ -4,7 +4,7 @@ const { Pool } = require('pg');
 const bcrypt = require('bcrypt');
 const OpenAI = require('openai');
 const jwt = require('jsonwebtoken');
-const cookie = require('cookie-parser');
+const cookieParser = require('cookie-parser');
 require("dotenv").config();
 
 const app = express();
