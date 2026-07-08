@@ -52,7 +52,7 @@ function Clubs() {
     }
 
     try {
-      const response = await fetch(`${API_URL}1/api/clubs`, {
+      const response = await fetch(`${API_URL}/api/clubs`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

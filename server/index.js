@@ -5,6 +5,7 @@ const bcrypt = require('bcrypt');
 const OpenAI = require('openai');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
+
 require("dotenv").config();
 
 const app = express();
@@ -15,12 +16,10 @@ const openai = new OpenAI({
 });
 
 // Middleware
-
 const allowedOrigins = [
   "http://localhost:5173",
   "https://anime-tracker-blush.vercel.app"
 ];
-
 app.use(cors({
   origin: function (origin, callback) {
 
@@ -64,7 +63,6 @@ app.post("/api/chat", async (req, res) => {
 
 
 // PostgreSQL Connection Pool
-
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: {
@@ -247,6 +245,9 @@ app.get('/api/reviews/:animeId', async (req, res) => {
     const result = await client.query(query, [animeId]);
     client.release();
     res.status(200).json({ reviews: result.rows });
+    res.json({
+      message: "review added sucessfully"
+    })
   } catch (error) {
     console.error('Fetch reviews error:', error);
     res.status(500).json({ message: 'Server error. Could not fetch reviews.' });
@@ -330,19 +331,21 @@ app.get('/api/analytics/:userId', async (req, res) => {
     res.status(500).json({ message: 'Server error. Could not fetch analytics.' });
   }
 });
+let genresCache = null;
 
-app.get('/api/genres', async (req, res) => {
-  try {
-    const response = await fetch('https://api.jikan.moe/v4/genres/anime');
-    const data = await response.json();
-    if (!response.ok) {
-      return res.status(response.status).json({ message: data.message });
-    }
-    res.status(200).json({ genres: data.data });
-  } catch (error) {
-    console.error('Fetch genres error:', error);
-    res.status(500).json({ message: 'Server error. Could not fetch genres.' });
+app.get("/api/genres", async (req, res) => {
+  if (genresCache) {
+    return res.json(genresCache);
   }
+
+  const response = await fetch("https://api.jikan.moe/v4/genres/anime");
+  const data = await response.json();
+
+  genresCache = {
+    genres: data.data,
+  };
+
+  res.json(genresCache);
 });
 
 // Endpoint to get all clubs (for frontend display)
@@ -692,7 +695,22 @@ app.get('/api/votes/:userId', async (req, res) => {
   }
 });
 
+app.get("/api/auth/me", verifytoken, (req, res) => {
+  res.json({
+    authenticated: true,
+    user: req.user,
+  });
+});
 
+app.post("/api/logout", (req, res) => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: false, // true in production with HTTPS
+    sameSite: "lax",
+  });
+
+  res.json({ message: "Logged out successfully" });
+})
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

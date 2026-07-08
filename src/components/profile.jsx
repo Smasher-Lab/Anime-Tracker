@@ -9,10 +9,12 @@ function Profile() {
   const { username, isAdmin } = location.state || {};
   const [showHelp, setShowHelp] = useState(false);
 
-  const handleLogout = () => {
-    navigate('/');
-  };
+  const handleLogout = async() => await fetch(`${API_URL}/api/logout`, {
+    method: "POST",
+    credentials: "include",
+  });
 
+  navigate("/login", { replace: true });
   return (
     <div className="profile-container">
       <h2>Profile</h2>
@@ -22,7 +24,7 @@ function Profile() {
           <div className="profile-details">
             <p><strong>Account Type:</strong> {isAdmin ? 'Administrator' : 'Standard User'}</p>
           </div>
-          
+
           <div className="profile-actions">
             <button onClick={() => setShowHelp(!showHelp)} className="help-button">
               {showHelp ? 'Hide Help' : 'Show Help'}
@@ -49,7 +51,7 @@ function Profile() {
       )}
     </div>
   );
-  
+
 }
 
 export default Profile;
