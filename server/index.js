@@ -5,7 +5,6 @@ const bcrypt = require('bcrypt');
 const OpenAI = require('openai');
 const jwt = require('jsonwebtoken');
 const cookie = require('cookie-parser');
-const cookieParser = require('cookie-parser');
 require("dotenv").config();
 
 const app = express();
@@ -17,8 +16,21 @@ const openai = new OpenAI({
 
 // Middleware
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://anime-tracker-blush.vercel.app"
+];
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL,
+  origin: function (origin, callback) {
+
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+
+  },
   credentials: true
 }));
 app.use(express.json());
@@ -148,16 +160,13 @@ app.post('/api/login', async (req, res) => {
       userid: user.id,
       admin: user.is_admin
     },
-      "process.env.JWT_SECRET", {
+      process.env.JWT_SECRET, {
       expiresIn: "0.5h"
     })
     res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite:
-        process.env.NODE_ENV === "production"
-          ? "none"
-          : "lax",
+      secure: true,
+      sameSite: "None",
       maxAge: 30 * 60 * 1000
     });
     res.status(200).json({
@@ -178,12 +187,18 @@ const verifytoken = (req, res, next) => {
     return res.json({ message: "cannot find token or invalid session" })
   }
   try {
-    const decode = jwt.verify(token, "travker_09");
-    req.user = decode;
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET
+    );
+
+    req.user = decoded;
     next();
   }
   catch (error) {
-    console.log(err)
+    return res.status(401).json({
+      message: "Invalid token"
+    });
   }
 }
 app.post('/api/anime', async (req, res) => {
