@@ -1,5 +1,4 @@
 const express = require('express');
-const cors = require('cors');
 const { Pool } = require('pg');
 const bcrypt = require('bcrypt');
 const OpenAI = require('openai');
@@ -16,21 +15,17 @@ const openai = new OpenAI({
 });
 
 // Middleware
-
-const allowedOrigins = [
-  "http://localhost:5173",
-  "https://anime-tracker-git-main-besto09.vercel.app",
-];
+const cors = require("cors");
 
 app.use(cors({
-  origin: (origin, callback) => {
-    callback(null, true);
-  },
+  origin: true,
   credentials: true
 }));
 
+app.options("*", cors());
+
 app.use(express.json());
-app.use(express.json());
+console.log("=== NEW BUILD DEPLOYED ===");
 app.use(cookieParser())
 // Chat route
 app.post("/api/chat", async (req, res) => {
@@ -543,36 +538,7 @@ app.get('/api/votes/:userId', async (req, res) => {
     });
   }
 });
-app.get('/api/clubs', async (req, res) => {
-  try {
-    const client = await pool.connect();
 
-    const query = `
-      SELECT
-        c.*,
-        u.username
-      FROM clubs c
-      JOIN users u
-        ON c.created_by = u.id
-      ORDER BY c.created_at DESC
-    `;
-
-    const result = await client.query(query);
-
-    client.release();
-
-    res.status(200).json({
-      clubs: result.rows
-    });
-
-  } catch (error) {
-    console.error('Fetch clubs error:', error);
-
-    res.status(500).json({
-      message: 'Server error. Could not fetch clubs.'
-    });
-  }
-});
 app.get('/api/admin/users', verifytoken, async (req, res) => {
   const { is_admin } = req.query;
   if (is_admin !== 'true') {
