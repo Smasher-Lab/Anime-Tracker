@@ -18,7 +18,7 @@ const openai = new OpenAI({
 // Middleware
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://anime-tracker-blush.vercel.app"
+  "https://anime-tracker-qi92j60fy-besto09.vercel.app/"
 ];
 app.use(cors({
   origin: function (origin, callback) {
