@@ -18,19 +18,21 @@ const openai = new OpenAI({
 // Middleware
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://anime-tracker-qi92j60fy-besto09.vercel.app/"
+  "https://anime-tracker-qi92j60fy-besto09.vercel.app"
 ];
+
 app.use(cors({
-  origin: function (origin, callback) {
+  origin: (origin, callback) => {
+    console.log("Origin received:", origin);
 
     if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
+      return callback(null, true);
     }
 
+    console.log("Blocked origin:", origin);
+    return callback(new Error("Not allowed by CORS"));
   },
-  credentials: true
+  credentials: true,
 }));
 app.use(express.json());
 app.use(cookieParser())
