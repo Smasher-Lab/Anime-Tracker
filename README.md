@@ -94,8 +94,10 @@ npm start
 ## 📸 Screenshots
 
 ![Login image](image.png)
-
-
+![Home Page](image-1.png)
+![Anime Page](image-2.png)
+![CLub Pages,discussion and polls,votes](image-3.png)
+![Creating club](image-4.png)
 ---
 
 ## 🌐 Live Demo
