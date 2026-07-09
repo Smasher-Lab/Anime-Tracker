@@ -13,13 +13,13 @@ function AnimeTracker() {
   const { userId, username, isAdmin } = location.state || {};
 
   const menuCategories = [
-  'All',
-  'Watching',
-  'Completed',
-  'On Hold',
-  'Dropped',
-  'Plan to Watch',
-];
+    'All',
+    'Watching',
+    'Completed',
+    'On Hold',
+    'Dropped',
+    'Plan to Watch',
+  ];
 
   useEffect(() => {
     if (!userId) {
@@ -209,61 +209,76 @@ function AnimeTracker() {
           onChange={(e) => setSearchQuery(e.target.value)}
           className="search-input"
         />
-        <button onClick={handleSearch} className="search-button">Search</button>
+        <button
+          onClick={handleSearch}
+          style={{
+            display: "block",
+            width: 120,
+            height: 40,
+            background: "red",
+          }}
+        >
+        Search
+      </button>
+    </div>
+
+      { isSearching && <div className="loading-message">Searching for anime...</div> }
+  {
+    !isSearching && searchResults.length > 0 && (
+      <div className="search-results-list">
+        <h3>Search Results</h3>
+        <div className="anime-list">
+          {searchResults.map(anime => (
+            <Link
+              to={`/anime/${anime.mal_id}`}
+              key={anime.mal_id}
+              state={{ userId, username, isAdmin }}
+              className="anime-card-link"
+            >
+              <div className="anime-card">
+                <img src={anime.images.jpg.image_url} alt={anime.title} className="anime-image" />
+                <div className="anime-card-content">
+                  <h3>{anime.title}</h3>
+                  <p>Episodes: {anime.episodes || 'N/A'}</p>
+                  <p>Score: {anime.score || 'N/A'}</p>
+                  <button onClick={(e) => { e.preventDefault(); addAnimeToList(anime); }} className="add-button">Add to My List</button>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
       </div>
+    )
+  }
 
-      {isSearching && <div className="loading-message">Searching for anime...</div>}
-      {!isSearching && searchResults.length > 0 && (
-        <div className="search-results-list">
-          <h3>Search Results</h3>
-          <div className="anime-list">
-            {searchResults.map(anime => (
-              <Link
-                to={`/anime/${anime.mal_id}`}
-                key={anime.mal_id}
-                state={{ userId, username, isAdmin }}
-                className="anime-card-link"
-              >
-                <div className="anime-card">
-                  <img src={anime.images.jpg.image_url} alt={anime.title} className="anime-image" />
-                  <div className="anime-card-content">
-                    <h3>{anime.title}</h3>
-                    <p>Episodes: {anime.episodes || 'N/A'}</p>
-                    <p>Score: {anime.score || 'N/A'}</p>
-                    <button onClick={(e) => { e.preventDefault(); addAnimeToList(anime); }} className="add-button">Add to My List</button>
-                  </div>
+  {
+    !isSearching && searchResults.length === 0 && popularAnime.length > 0 && (
+      <div className="popular-anime-section">
+        <h3>Popular Anime</h3>
+        <div className="anime-list">
+          {popularAnime.map(anime => (
+            <Link
+              to={`/anime/${anime.mal_id}`}
+              key={anime.mal_id}
+              state={{ userId, username, isAdmin }}
+              className="anime-card-link"
+            >
+              <div className="anime-card">
+                <img src={anime.images.jpg.image_url} alt={anime.title} className="anime-image" />
+                <div className="anime-card-content">
+                  <h3>{anime.title}</h3>
+                  <p>Episodes: {anime.episodes || 'N/A'}</p>
+                  <p>Score: {anime.score || 'N/A'}</p>
+                  <button onClick={(e) => { e.preventDefault(); addAnimeToList(anime); }} className="add-button">Add to My List</button>
                 </div>
-              </Link>
-            ))}
-          </div>
+              </div>
+            </Link>
+          ))}
         </div>
-      )}
-
-      {!isSearching && searchResults.length === 0 && popularAnime.length > 0 && (
-        <div className="popular-anime-section">
-          <h3>Popular Anime</h3>
-          <div className="anime-list">
-            {popularAnime.map(anime => (
-              <Link
-                to={`/anime/${anime.mal_id}`}
-                key={anime.mal_id}
-                state={{ userId, username, isAdmin }}
-                className="anime-card-link"
-              >
-                <div className="anime-card">
-                  <img src={anime.images.jpg.image_url} alt={anime.title} className="anime-image" />
-                  <div className="anime-card-content">
-                    <h3>{anime.title}</h3>
-                    <p>Episodes: {anime.episodes || 'N/A'}</p>
-                    <p>Score: {anime.score || 'N/A'}</p>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-          <hr />
-        </div>
-      )}
+        <hr />
+      </div>
+    )
+  }
 
       <FilterBar onFilterChange={handleFilterChange} />
 
@@ -279,37 +294,39 @@ function AnimeTracker() {
         ))}
       </div>
 
-      {!isSearching && searchResults.length === 0 && (
-        <div className="anime-list">
-          {filteredAnime.length > 0 ? (
-            filteredAnime.map(anime => (
-              <Link
-                to={`/anime/${anime.id}`}
-                key={anime.id}
-                state={{ userId, username, isAdmin }}
-                className="anime-card-link"
-              >
-                <div className="anime-card">
-                  <img src={anime.image} alt={anime.title} className="anime-image" />
-                  <div className="anime-card-content">
-                    <h3>{anime.title}</h3>
-                    <p>Episodes: {anime.episodes || 'N/A'}</p>
-                    <p>Category: {anime.category}</p>
-                    <div className="progress-container">
-                      <button onClick={(e) => { e.preventDefault(); handleProgressUpdate(anime.id, 'decrement'); }}>-</button>
-                      <span>{anime.watchedEpisodes} / {anime.episodes || '??'}</span>
-                      <button onClick={(e) => { e.preventDefault(); handleProgressUpdate(anime.id, 'increment'); }}>+</button>
-                    </div>
+  {
+    !isSearching && searchResults.length === 0 && (
+      <div className="anime-list">
+        {filteredAnime.length > 0 ? (
+          filteredAnime.map(anime => (
+            <Link
+              to={`/anime/${anime.id}`}
+              key={anime.id}
+              state={{ userId, username, isAdmin }}
+              className="anime-card-link"
+            >
+              <div className="anime-card">
+                <img src={anime.image} alt={anime.title} className="anime-image" />
+                <div className="anime-card-content">
+                  <h3>{anime.title}</h3>
+                  <p>Episodes: {anime.episodes || 'N/A'}</p>
+                  <p>Category: {anime.category}</p>
+                  <div className="progress-container">
+                    <button onClick={(e) => { e.preventDefault(); handleProgressUpdate(anime.id, 'decrement'); }}>-</button>
+                    <span>{anime.watchedEpisodes} / {anime.episodes || '??'}</span>
+                    <button onClick={(e) => { e.preventDefault(); handleProgressUpdate(anime.id, 'increment'); }}>+</button>
                   </div>
                 </div>
-              </Link>
-            ))
-          ) : (
-            <p className="no-anime-message">No anime in this category yet.</p>
-          )}
-        </div>
-      )}
-    </div>
+              </div>
+            </Link>
+          ))
+        ) : (
+          <p className="no-anime-message">No anime in this category yet.</p>
+        )}
+      </div>
+    )
+  }
+    </div >
   );
 }
 
