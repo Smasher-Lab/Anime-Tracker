@@ -40,11 +40,11 @@ function Chatbot() {
       <h3>AI Assistant</h3>
       <div className="chat-messages">
         {messages.map((msg, index) => (
-          <div key={index} className={`message ${msg.sender}`}>
+          <div key={index} className={`chat-message ${msg.sender}`}>
             <p>{msg.text}</p>
           </div>
         ))}
-        {isLoading && <div className="message ai typing">AI is typing...</div>}
+        {isLoading && <div className="chat-message ai typing">AI is typing...</div>}
       </div>
       <form onSubmit={handleSendMessage} className="chat-input-form">
         <input

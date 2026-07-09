@@ -98,6 +98,7 @@ npm start
 ![Anime Page](image-2.png)
 ![CLub Pages,discussion and polls,votes](image-3.png)
 ![Creating club](image-4.png)
+![share watchlist](image-5.png)
 ---
 
 ## 🌐 Live Demo

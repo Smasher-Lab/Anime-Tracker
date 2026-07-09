@@ -10,7 +10,10 @@ import API_URL from '../config';
 function AnimeTracker() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { userId, username, isAdmin } = location.state || {};
+  const savedUser = JSON.parse(localStorage.getItem('user') || '{}');
+  const userId = location.state?.userId || savedUser.userId;
+  const username = location.state?.username || savedUser.username;
+  const isAdmin = location.state?.isAdmin || savedUser.isAdmin;
 
   const menuCategories = [
     'All',
@@ -22,10 +25,11 @@ function AnimeTracker() {
   ];
 
   useEffect(() => {
-    if (!userId) {
-      navigate('/');
+    const stored = localStorage.getItem('user');
+    if (!stored) {
+      navigate('/', { replace: true });
     }
-  }, [userId, navigate]);
+  }, [navigate]);
 
   const [activeCategory, setActiveCategory] = useState('All');
   const [animeData, setAnimeData] = useState([]);
@@ -141,16 +145,46 @@ function AnimeTracker() {
       return prevData.map(anime => {
         if (anime.id === animeId) {
           let newWatched = anime.watchedEpisodes;
-          if (type === 'increment' && newWatched < anime.episodes) {
+          let episodesCount = anime.episodes || 0;
+          if (type === 'increment' && (episodesCount === 0 || newWatched < episodesCount)) {
             newWatched++;
           } else if (type === 'decrement' && newWatched > 0) {
             newWatched--;
           }
-          return { ...anime, watchedEpisodes: newWatched };
+          
+          let category = anime.category;
+          if (newWatched > 0 && (episodesCount === 0 || newWatched < episodesCount)) {
+            if (category === 'Plan to Watch') {
+              category = 'Watching';
+            }
+          } else if (episodesCount > 0 && newWatched === episodesCount) {
+            category = 'Completed';
+          } else if (newWatched === 0) {
+            if (category === 'Watching' || category === 'Completed') {
+              category = 'Plan to Watch';
+            }
+          }
+
+          return { ...anime, watchedEpisodes: newWatched, category };
         }
         return anime;
       });
     });
+  };
+
+  const handleDeleteFromWatchlist = (animeId) => {
+    const anime = animeData.find(a => a.id === animeId);
+    if (!anime) return;
+
+    if (anime.category !== 'Dropped') {
+      const confirmDrop = window.confirm(`Are you sure you want to move "${anime.title}" to Dropped?`);
+      if (!confirmDrop) return;
+      setAnimeData(prevData => prevData.map(a => a.id === animeId ? { ...a, category: 'Dropped' } : a));
+    } else {
+      const confirmDelete = window.confirm(`Are you sure you want to completely remove "${anime.title}" from your watchlist?`);
+      if (!confirmDelete) return;
+      setAnimeData(prevData => prevData.filter(a => a.id !== animeId));
+    }
   };
 
   const handleFilterChange = (genreId) => {
@@ -184,22 +218,7 @@ function AnimeTracker() {
           </button>
         )}
       </div>
-      {/* Sidebar */}
-      <Sidebar
-        userId={userId}
-        username={username}
-        isAdmin={isAdmin}
-        setShowShareModal={setShowShareModal}
-      />
 
-      {showShareModal && (
-        <div className="share-modal-backdrop">
-          <div className="share-modal-content">
-            <button onClick={() => setShowShareModal(false)} className="close-modal-button">&times;</button>
-            <ShareWatchlist userId={userId} />
-          </div>
-        </div>
-      )}
 
       <div className="search-bar-container">
         <input
@@ -207,19 +226,19 @@ function AnimeTracker() {
           placeholder="Search for an anime..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              handleSearch();
+            }
+          }}
           className="search-input"
         />
         <button
           onClick={handleSearch}
-          style={{
-            display: "block",
-            width: 120,
-            height: 40,
-            background: "red",
-          }}
+          className="search-button"
         >
-        Search
-      </button>
+          Search
+        </button>
     </div>
 
       { isSearching && <div className="loading-message">Searching for anime...</div> }
@@ -316,6 +335,15 @@ function AnimeTracker() {
                     <span>{anime.watchedEpisodes} / {anime.episodes || '??'}</span>
                     <button onClick={(e) => { e.preventDefault(); handleProgressUpdate(anime.id, 'increment'); }}>+</button>
                   </div>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleDeleteFromWatchlist(anime.id);
+                    }}
+                    className="delete-watchlist-btn"
+                  >
+                    Remove from List
+                  </button>
                 </div>
               </div>
             </Link>

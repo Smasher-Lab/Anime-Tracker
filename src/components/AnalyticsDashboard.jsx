@@ -1,10 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import API_URL from '../config';
 
 function AnalyticsDashboard() {
+  const navigate = useNavigate();
   const location = useLocation();
-  const { userId } = location.state || {};
+  
+  const savedUser = JSON.parse(localStorage.getItem('user') || '{}');
+  const userId = location.state?.userId || savedUser.userId;
+
+  useEffect(() => {
+    const stored = localStorage.getItem('user');
+    if (!stored) {
+      navigate('/', { replace: true });
+    }
+  }, [navigate]);
 
   const [totalEpisodes, setTotalEpisodes] = useState(0);
   const [totalWatchTimeHours, setTotalWatchTimeHours] = useState(0);

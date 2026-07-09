@@ -62,7 +62,21 @@ const pool = new Pool({
   },
 });
 pool.query("SELECT NOW()")
-  .then(() => console.log("✅ Connected to Neon PostgreSQL"))
+  .then(() => {
+    console.log("✅ Connected to Neon PostgreSQL");
+    pool.query(`
+      CREATE TABLE IF NOT EXISTS admin_messages (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        message TEXT NOT NULL,
+        is_read BOOLEAN NOT NULL DEFAULT FALSE,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+      ALTER TABLE admin_messages ADD COLUMN IF NOT EXISTS is_read BOOLEAN NOT NULL DEFAULT FALSE;
+    `)
+      .then(() => console.log("✅ admin_messages table verified/created with is_read column"))
+      .catch(err => console.error("❌ Error creating admin_messages table:", err.message));
+  })
   .catch(err => console.error("❌ Database Connection Error:", err.message));
 
 async function checkNewEpisodes() {
@@ -103,9 +117,15 @@ app.get('/', (req, res) => {
 });
 
 app.post('/api/register', async (req, res) => {
-  const { username, password } = req.body;
+  const { username, password, isAdmin, adminCode } = req.body;
   if (!username || !password) {
     return res.status(400).json({ message: 'Username and password are required.' });
+  }
+  if (isAdmin === true) {
+    const requiredCode = process.env.ADMIN_SECRET_KEY || "MukkuAdmin2026";
+    if (adminCode !== requiredCode) {
+      return res.status(403).json({ message: 'Invalid Admin Secret Passcode.' });
+    }
   }
   try {
     const client = await pool.connect();
@@ -116,8 +136,8 @@ app.post('/api/register', async (req, res) => {
       return res.status(409).json({ message: 'Username already exists.' });
     }
     const hashedPassword = await bcrypt.hash(password, 10);
-    const insertUserQuery = 'INSERT INTO users (username, password) VALUES ($1, $2)';
-    await client.query(insertUserQuery, [username, hashedPassword]);
+    const insertUserQuery = 'INSERT INTO users (username, password, is_admin) VALUES ($1, $2, $3)';
+    await client.query(insertUserQuery, [username, hashedPassword, isAdmin === true]);
     client.release();
     res.status(201).json({ message: 'User registered successfully!' });
   } catch (error) {
@@ -538,7 +558,7 @@ app.get('/api/votes/:userId', async (req, res) => {
   }
 });
 
-app.get('/api/admin/users', verifytoken, async (req, res) => {
+app.get('/api/admin/users', async (req, res) => {
   const { is_admin } = req.query;
   if (is_admin !== 'true') {
     return res.status(403).json({ message: 'Access denied.' });
@@ -643,6 +663,137 @@ app.delete('/api/admin/reviews/:id', async (req, res) => {
   }
 });
 
+// Admin endpoint to get all polls for moderation
+app.get('/api/admin/polls', async (req, res) => {
+  const { is_admin } = req.query;
+  if (is_admin !== 'true') {
+    return res.status(403).json({ message: 'Access denied.' });
+  }
+  try {
+    const client = await pool.connect();
+    const query = 'SELECT p.*, u.username, cl.name as club_name FROM polls p INNER JOIN users u ON p.created_by = u.id INNER JOIN clubs cl ON p.club_id = cl.id ORDER BY p.created_at DESC';
+    const result = await client.query(query);
+    client.release();
+    res.status(200).json({ polls: result.rows });
+  } catch (error) {
+    console.error('Admin polls fetch error:', error);
+    res.status(500).json({ message: 'Server error. Could not fetch polls.' });
+  }
+});
+
+// Admin endpoint to delete a poll
+app.delete('/api/admin/polls/:id', async (req, res) => {
+  const { id } = req.params;
+  const { is_admin } = req.query;
+  if (is_admin !== 'true') {
+    return res.status(403).json({ message: 'Access denied.' });
+  }
+  try {
+    const client = await pool.connect();
+    const query = 'DELETE FROM polls WHERE id = $1';
+    await client.query(query, [id]);
+    client.release();
+    res.status(200).json({ message: 'Poll deleted successfully.' });
+  } catch (error) {
+    console.error('Admin delete poll error:', error);
+    res.status(500).json({ message: 'Server error. Could not delete poll.' });
+  }
+});
+
+// Admin endpoint to get all discussion messages for moderation
+app.get('/api/admin/discussions', async (req, res) => {
+  const { is_admin } = req.query;
+  if (is_admin !== 'true') {
+    return res.status(403).json({ message: 'Access denied.' });
+  }
+  try {
+    const client = await pool.connect();
+    const query = 'SELECT d.*, u.username, cl.name as club_name FROM discussions d INNER JOIN users u ON d.user_id = u.id INNER JOIN clubs cl ON d.club_id = cl.id ORDER BY d.created_at DESC';
+    const result = await client.query(query);
+    client.release();
+    res.status(200).json({ discussions: result.rows });
+  } catch (error) {
+    console.error('Admin discussions fetch error:', error);
+    res.status(500).json({ message: 'Server error. Could not fetch discussions.' });
+  }
+});
+
+// Admin endpoint to delete a discussion message
+app.delete('/api/admin/discussions/:id', async (req, res) => {
+  const { id } = req.params;
+  const { is_admin } = req.query;
+  if (is_admin !== 'true') {
+    return res.status(403).json({ message: 'Access denied.' });
+  }
+  try {
+    const client = await pool.connect();
+    const query = 'DELETE FROM discussions WHERE id = $1';
+    await client.query(query, [id]);
+    client.release();
+    res.status(200).json({ message: 'Message deleted successfully.' });
+  } catch (error) {
+    console.error('Admin delete discussion error:', error);
+    res.status(500).json({ message: 'Server error. Could not delete message.' });
+  }
+});
+
+// Admin endpoint to send message to user
+app.post('/api/admin/messages', async (req, res) => {
+  const { is_admin } = req.query;
+  const { userId, message } = req.body;
+  if (is_admin !== 'true') {
+    return res.status(403).json({ message: 'Access denied.' });
+  }
+  if (!userId || !message) {
+    return res.status(400).json({ message: 'User ID and message are required.' });
+  }
+  try {
+    const client = await pool.connect();
+    const query = 'INSERT INTO admin_messages (user_id, message) VALUES ($1, $2) RETURNING *';
+    const result = await client.query(query, [userId, message]);
+    client.release();
+    res.status(201).json({ message: 'Message sent successfully!', data: result.rows[0] });
+  } catch (error) {
+    console.error('Admin send message error:', error);
+    res.status(500).json({ message: 'Server error. Could not send message.' });
+  }
+});
+
+// User endpoint to get messages sent by admin
+app.get('/api/admin/messages/:userId', async (req, res) => {
+  const { userId } = req.params;
+  try {
+    const client = await pool.connect();
+    const query = 'SELECT * FROM admin_messages WHERE user_id = $1 ORDER BY created_at DESC';
+    const result = await client.query(query, [userId]);
+    
+    const countQuery = 'SELECT COUNT(*)::integer as count FROM admin_messages WHERE user_id = $1 AND is_read = FALSE';
+    const countResult = await client.query(countQuery, [userId]);
+    const unreadCount = countResult.rows[0]?.count || 0;
+
+    client.release();
+    res.status(200).json({ messages: result.rows, unreadCount });
+  } catch (error) {
+    console.error('Fetch admin messages error:', error);
+    res.status(500).json({ message: 'Server error. Could not fetch messages.' });
+  }
+});
+
+// Endpoint to mark admin messages as read
+app.put('/api/admin/messages/read/:userId', async (req, res) => {
+  const { userId } = req.params;
+  try {
+    const client = await pool.connect();
+    const query = 'UPDATE admin_messages SET is_read = TRUE WHERE user_id = $1';
+    await client.query(query, [userId]);
+    client.release();
+    res.status(200).json({ message: 'Messages marked as read successfully.' });
+  } catch (error) {
+    console.error('Mark messages read error:', error);
+    res.status(500).json({ message: 'Server error. Could not update messages.' });
+  }
+});
+
 // Endpoint to get a user's vote list
 app.get('/api/votes/:userId', async (req, res) => {
   const { userId } = req.params;
@@ -655,6 +806,64 @@ app.get('/api/votes/:userId', async (req, res) => {
   } catch (error) {
     console.error('Fetch votes error:', error);
     res.status(500).json({ message: 'Server error. Could not fetch votes.' });
+  }
+});
+
+// Endpoint to delete a review (by its creator)
+app.delete('/api/reviews/:id', async (req, res) => {
+  const { id } = req.params;
+  const { userId } = req.query;
+  if (!userId) {
+    return res.status(400).json({ message: 'User ID is required.' });
+  }
+  try {
+    const client = await pool.connect();
+    const checkQuery = 'SELECT * FROM reviews WHERE id = $1';
+    const checkResult = await client.query(checkQuery, [id]);
+    if (checkResult.rows.length === 0) {
+      client.release();
+      return res.status(404).json({ message: 'Review not found.' });
+    }
+    if (checkResult.rows[0].user_id !== parseInt(userId)) {
+      client.release();
+      return res.status(403).json({ message: 'You can only delete your own reviews.' });
+    }
+    const query = 'DELETE FROM reviews WHERE id = $1';
+    await client.query(query, [id]);
+    client.release();
+    res.status(200).json({ message: 'Review deleted successfully.' });
+  } catch (error) {
+    console.error('Delete review error:', error);
+    res.status(500).json({ message: 'Server error. Could not delete review.' });
+  }
+});
+
+// Endpoint to delete a poll (by its creator)
+app.delete('/api/polls/:id', async (req, res) => {
+  const { id } = req.params;
+  const { userId } = req.query;
+  if (!userId) {
+    return res.status(400).json({ message: 'User ID is required.' });
+  }
+  try {
+    const client = await pool.connect();
+    const checkQuery = 'SELECT * FROM polls WHERE id = $1';
+    const checkResult = await client.query(checkQuery, [id]);
+    if (checkResult.rows.length === 0) {
+      client.release();
+      return res.status(404).json({ message: 'Poll not found.' });
+    }
+    if (checkResult.rows[0].created_by !== parseInt(userId)) {
+      client.release();
+      return res.status(403).json({ message: 'You can only delete your own polls.' });
+    }
+    const query = 'DELETE FROM polls WHERE id = $1';
+    await client.query(query, [id]);
+    client.release();
+    res.status(200).json({ message: 'Poll deleted successfully.' });
+  } catch (error) {
+    console.error('Delete poll error:', error);
+    res.status(500).json({ message: 'Server error. Could not delete poll.' });
   }
 });
 

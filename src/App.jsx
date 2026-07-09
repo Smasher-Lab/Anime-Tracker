@@ -11,6 +11,7 @@ import AnimeDetail from './components/AnimeDetail';
 import SharedWatchlist from './components/ShareWatchlist';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
 import AdminPanel from './components/AdminPanel';
+import Sidebar from './components/Sidebar';
 
 function App() {
   const [theme, setTheme] = useState('dark');
@@ -22,6 +23,7 @@ function App() {
     <div className={`App ${theme}`}>
       <Router>
         <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
+        <Sidebar />
         <Routes>
           <Route path="/" element={<Login />} />
           <Route path="/tracker" element={<AnimeTracker />} />

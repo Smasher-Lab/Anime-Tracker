@@ -1,11 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useLocation } from 'react-router-dom';
+import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import API_URL from '../config';
 
 function AnimeDetail() {
+  const navigate = useNavigate();
   const { animeId } = useParams();
   const location = useLocation();
-  const { userId } = location.state || {};
+  
+  const savedUser = JSON.parse(localStorage.getItem('user') || '{}');
+  const userId = location.state?.userId || savedUser.userId;
+
+  useEffect(() => {
+    const stored = localStorage.getItem('user');
+    if (!stored) {
+      navigate('/', { replace: true });
+    }
+  }, [navigate]);
   const [anime, setAnime] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [streamingLinks, setStreamingLinks] = useState([]);
@@ -120,6 +130,27 @@ function AnimeDetail() {
     }
   };
 
+  const handleDeleteReview = async (reviewId) => {
+    const confirmDelete = window.confirm('Are you sure you want to delete your review?');
+    if (!confirmDelete) return;
+
+    try {
+      const response = await fetch(`${API_URL}/api/reviews/${reviewId}?userId=${userId}`, {
+        method: 'DELETE',
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setReviews(prevReviews => prevReviews.filter(r => r.id !== reviewId));
+        alert(data.message);
+      } else {
+        alert(data.message || 'Failed to delete review.');
+      }
+    } catch (err) {
+      console.error('Delete review error:', err);
+      alert('Could not delete review.');
+    }
+  };
+
   if (isLoading) {
     return <div className="loading-message">Loading anime details...</div>;
   }
@@ -218,6 +249,14 @@ function AnimeDetail() {
               <div key={review.id} className="review-card">
                 <p><strong>{review.username}</strong> rated it: <strong>{review.rating}/10</strong></p>
                 <p>{review.review_text}</p>
+                {userId === review.user_id && (
+                  <button
+                    onClick={() => handleDeleteReview(review.id)}
+                    className="delete-review-btn"
+                  >
+                    Delete Review
+                  </button>
+                )}
               </div>
             ))
           ) : (

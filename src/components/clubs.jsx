@@ -1,10 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, Link } from 'react-router-dom';
+import { useLocation, Link, useNavigate } from 'react-router-dom';
 import API_URL from '../config';
 
 function Clubs() {
+  const navigate = useNavigate();
   const location = useLocation();
-  const { userId, username } = location.state || {};
+  const stateUser = location.state || {};
+  
+  const savedUser = JSON.parse(localStorage.getItem('user') || '{}');
+  const userId = stateUser.userId || savedUser.userId;
+  const username = stateUser.username || savedUser.username;
+
+  useEffect(() => {
+    const stored = localStorage.getItem('user');
+    if (!stored) {
+      navigate('/', { replace: true });
+    }
+  }, [navigate]);
 
   const [clubs, setClubs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -88,9 +100,14 @@ function Clubs() {
     return <div className="error-message">{error}</div>;
   }
 
+  const isMyClubsFilter = location.search.includes('filter=my');
+  const displayedClubs = isMyClubsFilter
+    ? clubs.filter(club => club.created_by === userId)
+    : clubs;
+
   return (
     <div className="clubs-container">
-      <h2>Community Clubs</h2>
+      <h2>{isMyClubsFilter ? 'My Clubs' : 'Community Clubs'}</h2>
       <div className="create-club-form">
         <h3>Create a New Club</h3>
         <form onSubmit={handleCreateClub}>
@@ -117,9 +134,8 @@ function Clubs() {
       </div>
 
       <div className="club-list">
-
-        {clubs.length > 0 ? (
-          clubs.map(club => (
+        {displayedClubs.length > 0 ? (
+          displayedClubs.map(club => (
             <Link
               to={`/clubs/${club.id}`}
               key={club.id}
@@ -129,13 +145,16 @@ function Clubs() {
               <div className="club-card">
                 <h3>{club.name}</h3>
                 <p>{club.description}</p>
-                {/* We now use club.username instead of club.created_by */}
                 <small>Created by {club.username}</small>
               </div>
             </Link>
           ))
         ) : (
-          <p className="no-clubs-message">No clubs have been created yet. Be the first!</p>
+          <p className="no-clubs-message">
+            {isMyClubsFilter 
+              ? "You haven't created any clubs yet." 
+              : "No clubs have been created yet. Be the first!"}
+          </p>
         )}
       </div>
     </div>

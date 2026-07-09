@@ -8,6 +8,8 @@ function Login() {
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
   const [isLogin, setIsLogin] = useState(true);
+  const [isAdminChecked, setIsAdminChecked] = useState(false);
+  const [adminCode, setAdminCode] = useState('');
 
   const navigate = useNavigate();
 
@@ -29,7 +31,7 @@ function Login() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username, password, isAdmin: !isLogin && isAdminChecked, adminCode: !isLogin ? adminCode : '' }),
       });
 
       const data = await response.json();
@@ -37,6 +39,11 @@ function Login() {
       if (response.ok) {
         setMessage(data.message);
         if (isLogin) {
+          localStorage.setItem('user', JSON.stringify({
+            userId: data.user_id,
+            username: username,
+            isAdmin: data.is_admin
+          }));
           setTimeout(() => {
             navigate('/tracker', {
               state: {
@@ -78,6 +85,32 @@ function Login() {
             onChange={(e) => setPassword(e.target.value)}
           />
         </div>
+        {!isLogin && (
+          <>
+            <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '10px', marginBottom: isAdminChecked ? '0.5rem' : '1.5rem' }}>
+              <input
+                type="checkbox"
+                id="admin-checkbox"
+                checked={isAdminChecked}
+                onChange={(e) => setIsAdminChecked(e.target.checked)}
+                style={{ width: 'auto', margin: 0 }}
+              />
+              <label htmlFor="admin-checkbox" style={{ display: 'inline', margin: 0, cursor: 'pointer' }}>Register as Administrator</label>
+            </div>
+            {isAdminChecked && (
+              <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                <label htmlFor="admin-code">Admin Secret Passcode:</label>
+                <input
+                  type="password"
+                  id="admin-code"
+                  placeholder="Enter admin passcode..."
+                  value={adminCode}
+                  onChange={(e) => setAdminCode(e.target.value)}
+                />
+              </div>
+            )}
+          </>
+        )}
         <button type="submit">{isLogin ? 'Log In' : 'Register'}</button>
       </form>
       {message && <p className="message">{message}</p>}

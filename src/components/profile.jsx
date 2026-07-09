@@ -1,20 +1,57 @@
 // src/components/Profile.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Chatbot from './Chatbot';
 import API_URL from '../config';
 function Profile() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { username, isAdmin } = location.state || {};
+  
+  const savedUser = JSON.parse(localStorage.getItem('user') || '{}');
+  const userId = location.state?.userId || savedUser.userId;
+  const username = location.state?.username || savedUser.username;
+  const isAdmin = location.state?.isAdmin || savedUser.isAdmin;
+  
   const [showHelp, setShowHelp] = useState(false);
+  const [messages, setMessages] = useState([]);
 
-  const handleLogout = async() => await fetch(`${API_URL}/api/logout`, {
-    method: "POST",
-    credentials: "include",
-  });
+  useEffect(() => {
+    const fetchMessages = async () => {
+      if (!userId) return;
+      try {
+        const response = await fetch(`${API_URL}/api/admin/messages/${userId}`);
+        const data = await response.json();
+        if (response.ok) {
+          setMessages(data.messages || []);
+          // Clear notification count since they are viewed on this page
+          fetch(`${API_URL}/api/admin/messages/read/${userId}`, { method: "PUT" }).catch(e => console.error(e));
+        }
+      } catch (err) {
+        console.error("Failed to fetch admin messages:", err);
+      }
+    };
+    fetchMessages();
+  }, [userId]);
 
-  navigate("/login", { replace: true });
+  useEffect(() => {
+    const stored = localStorage.getItem('user');
+    if (!stored) {
+      navigate('/', { replace: true });
+    }
+  }, [navigate]);
+
+  const handleLogout = async () => {
+    try {
+      await fetch(`${API_URL}/api/logout`, {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (err) {
+      console.error("Logout request failed:", err);
+    }
+    localStorage.removeItem('user');
+    navigate("/", { replace: true });
+  };
   return (
     <div className="profile-container">
       <h2>Profile</h2>
@@ -31,6 +68,22 @@ function Profile() {
             </button>
             <button onClick={handleLogout} className="logout-button">Logout</button>
           </div>
+
+          {messages.length > 0 && (
+            <div className="system-messages-section" style={{ marginTop: '2rem', borderTop: '1px solid var(--glass-border)', paddingTop: '2rem' }}>
+              <h3>Inbox (Messages from Admin)</h3>
+              <div className="messages-list" style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '1rem' }}>
+                {messages.map(msg => (
+                  <div key={msg.id} className="system-message-card" style={{ padding: '1rem', borderRadius: '12px', background: 'var(--bg-secondary)', border: '1px solid var(--glass-border)', boxShadow: 'var(--card-shadow)' }}>
+                    <p style={{ margin: 0, fontSize: '0.95rem', color: 'var(--text-primary)', lineHeight: '1.4' }}>{msg.message}</p>
+                    <small style={{ color: 'var(--text-muted)', display: 'block', marginTop: '8px', fontSize: '0.8rem' }}>
+                      Received on: {new Date(msg.created_at).toLocaleString()}
+                    </small>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {showHelp && (
             <div className="help-section">

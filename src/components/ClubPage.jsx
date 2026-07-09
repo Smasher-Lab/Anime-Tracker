@@ -1,11 +1,22 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useLocation } from 'react-router-dom';
+import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import API_URL from '../config';
 
 function ClubPage() {
+  const navigate = useNavigate();
   const { clubId } = useParams();
   const location = useLocation();
-  const { userId, username } = location.state || {};
+  
+  const savedUser = JSON.parse(localStorage.getItem('user') || '{}');
+  const userId = location.state?.userId || savedUser.userId;
+  const username = location.state?.username || savedUser.username;
+
+  useEffect(() => {
+    const stored = localStorage.getItem('user');
+    if (!stored) {
+      navigate('/', { replace: true });
+    }
+  }, [navigate]);
   
   const [club, setClub] = useState(null);
   const [discussions, setDiscussions] = useState([]);
@@ -185,6 +196,27 @@ function ClubPage() {
     }
   };
 
+  const handleDeletePoll = async (pollId) => {
+    const confirmDelete = window.confirm('Are you sure you want to delete this poll?');
+    if (!confirmDelete) return;
+
+    try {
+      const response = await fetch(`${API_URL}/api/polls/${pollId}?userId=${userId}`, {
+        method: 'DELETE',
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setPolls(prevPolls => prevPolls.filter(p => p.id !== pollId));
+        alert(data.message);
+      } else {
+        alert(data.message || 'Failed to delete poll.');
+      }
+    } catch (err) {
+      console.error('Delete poll error:', err);
+      alert('Could not delete poll.');
+    }
+  };
+
   if (isLoading) {
     return <div className="loading-message">Loading club...</div>;
   }
@@ -262,7 +294,17 @@ function ClubPage() {
           {polls.length > 0 ? (
             polls.map(poll => (
               <div key={poll.id} className="poll-card">
-                <h4>{poll.question}</h4>
+                <div className="poll-header-row">
+                  <h4>{poll.question}</h4>
+                  {userId === poll.created_by && (
+                    <button
+                      onClick={() => handleDeletePoll(poll.id)}
+                      className="delete-poll-btn"
+                    >
+                      Delete Poll
+                    </button>
+                  )}
+                </div>
                 <div className="poll-options">
                   {poll.options.map(option => (
                     <div key={option.id} className="poll-option">
